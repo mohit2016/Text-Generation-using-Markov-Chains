@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+import numpy as np
+
+
+# ## Load Data
+
+# In[34]:
+
+
+def load_file(file):
+    with open(file, encoding='utf8') as f:
+        return f.read().lower()
+    
+data = load_file("english_speech_2.txt")
+print(data[:1000])
+
+
+# In[ ]:
+
+
+
+
+
+# ### Helper Functions 
+
+# In[10]:
+
+
+def generateTransition(text, k=4):
+    T = {}
+    for i in range(len(text)-k):
+        X = text[i:i+k]
+        y = text[i+k]
+        
+        
+        if T.get(X) is None:
+            T[X] = {}
+            T[X][y] =1
+
+        elif T[X].get(y) is None:
+                T[X][y] = 1
+        else:
+            T[X][y] +=1
+
+    return T
+
+
+# In[11]:
+
+
+def convertTableintoProbab(T):
+    for key in T.keys():
+        sum_ = float(sum(list(T[key].values())))
+        
+        for k in T[key].keys():
+            T[key][k] = T[key][k]/sum_
+            
+    return T
+
+
+# In[71]:
+
+
+def TrainMarkovChain(data, k =4):
+    T = generateTransition(data, k)
+    T = convertTableintoProbab(T)
+    
+    return T
+
+
+# In[72]:
+
+
+model = TrainMarkovChain(data)
+
+
+# In[ ]:
+
+
+
+
+
+# ## Generate Text at the time
+
+# #### Sampling
+
+# In[15]:
+
+
+fruits = ["apple", "mango","banana","litch"]
+prob = [0.1,0.2,0.6,0.1]
+
+for i in range(10):
+    print(np.random.choice(fruits, p=prob))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[35]:
+
+
+def sample_next(key, T, k =4):
+    
+    if model.get(key) is  None:
+        return " "
+    
+    k = list(model[key].keys())
+    v = list(model[key].values())
+    
+    return np.random.choice(a= k, p = v)
+
+
+# In[36]:
+
+
+def generateText(start_context, k =4 , maxLimit=1000):
+    sentence = start_context
+    
+    for i in range(maxLimit):
+        pred = sample_next(key= sentence[-k:],T= model)
+        sentence += pred
+        
+    
+    return sentence
+
+
+# In[70]:
+
+
+print(generateText("fought"))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
